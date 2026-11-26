@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -23,6 +23,13 @@ jobs:
       - name: Install dependencies
         run: |
           if test -f package-lock.json; then npm ci; else npm install --no-audit --no-fund; fi
+      - name: Save generated dependency lockfile
+        if: ${{ hashFiles('package-lock.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-lockfile
+          path: package-lock.json
+          retention-days: 1
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
