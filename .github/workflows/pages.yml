@@ -20,22 +20,16 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '24'
-      - name: Install dependencies
-        run: |
-          if test -f package-lock.json; then npm ci; else npm install --no-audit --no-fund; fi
-      - name: Save generated dependency lockfile
-        if: ${{ hashFiles('package-lock.json') != '' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-lockfile
-          path: package-lock.json
-          retention-days: 1
+      - run: npm ci
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:storage
       - run: npm run test:e2e
+      - name: Show browser failure context
+        if: failure()
+        run: find test-results -name error-context.md -type f -print -exec cat {} \\; 2>/dev/null || true
       - if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:

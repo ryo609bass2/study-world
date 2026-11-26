@@ -7,11 +7,11 @@
 Node.js 24 LTS と npm を使います。npm レジストリに接続できる環境で、このフォルダを開いて実行します。
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
-Vite が表示した URL をブラウザで開きます。初回の `npm install` が生成する `package-lock.json` をリポジトリに含めた後は、別端末・CI で `npm ci` を使えます。開発時と公開時はアクセスする URL が変わるため、セーブを引き継ぐ場合は JSON を書き出して読み込んでください。
+Vite が表示した URL をブラウザで開きます。同梱の `package-lock.json` で依存関係を固定しています。開発時と公開時はアクセスする URL が変わるため、セーブを引き継ぐ場合は JSON を書き出して読み込んでください。
 
 ## 遊び方
 
@@ -56,7 +56,7 @@ npm run test:e2e
 
 ## GitHub Pages
 
-このフォルダを GitHub リポジトリのルートにします。最初に依存関係をインストールして lockfile を作り、型検査・テスト・ビルドを実行してください。GitHub の **Settings → Pages → Source** で **GitHub Actions** を選択します。同梱のワークフローは `main` の push または手動起動時に検証後の `dist` を配信します。Vite の相対ベースと単一ページの画面遷移を使うため、リポジトリ名による固定のアセットパス設定は不要です。
+このフォルダを GitHub リポジトリのルートにします。`npm ci` で依存関係をインストールし、型検査・テスト・ビルドを実行してください。GitHub の **Settings → Pages → Source** で **GitHub Actions** を選択します。同梱のワークフローは `main` の push または手動起動時に検証後の `dist` を配信します。Vite の相対ベースと単一ページの画面遷移を使うため、リポジトリ名による固定のアセットパス設定は不要です。
 
 ## ソースの構成
 

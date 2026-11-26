@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 async function setup(page: Page, entry: 'island' | 'quick') {
   await page.goto('./');
@@ -16,12 +16,24 @@ async function readAnswer(page: Page) {
 }
 
 async function correct(page: Page) {
+  const submit = page.getByRole('button', { name: '答える', exact: true });
+  await expect(submit).toBeVisible();
+  await expect(submit).toBeEnabled();
   const answer = await readAnswer(page);
   const options = page.getByRole('group', { name: '答えの選択肢' });
   if (await options.count()) await options.locator('button').filter({ hasText: new RegExp('^[1-4]' + answer.replace('.', '\\.') + '$') }).click();
   else await page.getByRole('textbox', { name: '答え', exact: true }).fill(answer);
-  await page.getByRole('button', { name: '答える', exact: true }).click();
+  await submit.click();
   await expect(page.getByText('正解！', { exact: false })).toBeVisible();
+}
+
+async function moveUntil(page: Page, key: string, target: Locator) {
+  await page.keyboard.down(key);
+  try {
+    await expect(target).toBeVisible();
+  } finally {
+    await page.keyboard.up(key);
+  }
 }
 
 test('T01/T05/T17 島で宝箱を開け、3問で家を作り、サブパスを再読込して復元', async ({ page }) => {
@@ -29,10 +41,9 @@ test('T01/T05/T17 島で宝箱を開け、3問で家を作り、サブパスを�
   page.on('pageerror', e => errors.push(e.message));
   await setup(page, 'island');
   await expect(page.locator('[data-world=home] canvas')).toBeVisible();
-  await page.keyboard.down('a');
-  await page.waitForTimeout(650);
-  await page.keyboard.up('a');
-  await page.getByRole('button', { name: /はじまりの宝箱/ }).click();
+  const chest = page.getByRole('button', { name: /はじまりの宝箱/ });
+  await moveUntil(page, 'a', chest);
+  await chest.click();
   await page.getByRole('button', { name: 'はじめての3問' }).click();
   for (let i = 0; i < 3; i++) {
     await correct(page);
@@ -82,14 +93,10 @@ test('T11/T12 発展の算数とアシスト足場を組み合わせ、落下後
   await page.getByLabel('答え方').selectOption('number');
   await page.getByRole('button', { name: 'ミッションをはじめる' }).click();
   await expect(page.locator('[data-world^=obby] canvas')).toBeVisible();
-  await page.keyboard.down('d');
-  await page.waitForTimeout(1400);
-  await page.keyboard.up('d');
-  await expect(page.getByText('チェックポイントに戻ったよ。')).toBeVisible();
-  await page.keyboard.down('w');
-  await page.waitForTimeout(3500);
-  await page.keyboard.up('w');
-  await page.getByRole('button', { name: /算数ゲートをひらく/ }).click();
+  await moveUntil(page, 'd', page.getByText('チェックポイントに戻ったよ。'));
+  const gate = page.getByRole('button', { name: /算数ゲートをひらく/ });
+  await moveUntil(page, 'w', gate);
+  await gate.click();
   await correct(page);
   await page.getByRole('button', { name: '次の足場へ' }).click();
   await expect(page.getByText('チェックポイント 2 / 3')).toBeVisible();
